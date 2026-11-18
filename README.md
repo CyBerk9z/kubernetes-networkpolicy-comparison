@@ -9,9 +9,22 @@ This undergraduate research compares selected NetworkPolicy scenarios across fou
 
 The ZIP contains baseline and repeat result TSVs, historical policy/workload definitions and selected follow-up data. Its README explains the layout. Historical scripts target named clusters and can modify or remove test resources: read them before running and use only disposable test environments. The October 15 source snapshot is evidence of that continuation, not necessarily of prior runs. The archive includes an explicitly named invalid-path run; it is not part of the reported comparisons. It is a research record, not a verified one-command reproduction package.
 
-## Example
+## Example: observed ingress traffic
 
-In one ingress test, an ipBlock excluding Pod A's IP resulted in A blocked and B/C allowed with kindnet and Calico, but A/B/C blocked with default Cilium. Selectors choosing B/C produced A blocked and B/C allowed with all three. Flannel alone passed all tested sources as a non-enforcing control. These policies select different sets beyond the three test Pods. Kubernetes recommends cluster-external IPs for ipBlock, and Cilium documents its default behavior; this observation is not presented as a bug. Four repetitions per policy were run with baseline controls.
+Each cell summarizes four repetitions with three destination probes per source: pass = 12 successes; timeout = 12 connection timeouts. All no-policy controls passed.
+
+| Policy | Setup | A | B | C |
+|---|---|---|---|---|
+| ipBlock excluding A's Pod IP | flannel alone | Pass | Pass | Pass |
+| ipBlock excluding A's Pod IP | kindnet | Timeout | Pass | Pass |
+| ipBlock excluding A's Pod IP | Calico | Timeout | Pass | Pass |
+| ipBlock excluding A's Pod IP | Cilium | Timeout | Timeout | Timeout |
+| Selectors choosing B and C | flannel alone | Pass | Pass | Pass |
+| Selectors choosing B and C | kindnet | Timeout | Pass | Pass |
+| Selectors choosing B and C | Calico | Timeout | Pass | Pass |
+| Selectors choosing B and C | Cilium | Timeout | Pass | Pass |
+
+The policies select different sets beyond these three Pods. Kubernetes recommends cluster-external IPs for ipBlock, and Cilium documents its default behavior. This observation is not presented as a bug. [See the test layout and historical runner](exp-009/README.md).
 
 ## Environment and scope
 

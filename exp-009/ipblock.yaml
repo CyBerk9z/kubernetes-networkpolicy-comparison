@@ -1,0 +1,9 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: experiment, namespace: np9-main}
+spec:
+  podSelector: {matchLabels: {app: server}}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - ipBlock: {cidr: 0.0.0.0/0, except: [CLIENT_A_IP/32]}

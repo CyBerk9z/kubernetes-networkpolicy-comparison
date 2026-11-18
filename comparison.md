@@ -2,9 +2,26 @@
 
 This is a research measurement of selected cases, not a conformance certification, product ranking, or a claim that a particular behavior is a bug. Measurements were made in separate single-node kind clusters on one host. kind v0.31.0, Kubernetes v1.35.0, containerd v2.2.0, Docker Desktop/WSL2; flannel v0.28.5 alone (non-enforcing control), kindnetd v20251212-v0.29.0-alpha-105-g20ccfc88, Calico v3.32.0, Cilium v1.20.2. Main matrix uses the respective default configurations. Five seconds elapsed after applying each policy. Baseline and exact results were retained.
 
+## Observed ingress example (EXP-009)
+
+Each entry below is observed source reachability across four repetitions and three destination probes (12 observations per source). `Pass` means 12/12 successful; `timeout` means 12/12 connection timeouts. A no-policy control passed all probes on all setups. The measurements use a 5-second wait and 3-second connection timeout.
+
+| Policy | Setup | Source A | Source B | Source C |
+|---|---|---|---|---|
+| ipBlock except A's Pod IP | flannel alone | Pass | Pass | Pass |
+| ipBlock except A's Pod IP | kindnet | Timeout | Pass | Pass |
+| ipBlock except A's Pod IP | Calico | Timeout | Pass | Pass |
+| ipBlock except A's Pod IP | Cilium | Timeout | Timeout | Timeout |
+| Selectors choosing B and C | flannel alone | Pass | Pass | Pass |
+| Selectors choosing B and C | kindnet | Timeout | Pass | Pass |
+| Selectors choosing B and C | Calico | Timeout | Pass | Pass |
+| Selectors choosing B and C | Cilium | Timeout | Pass | Pass |
+
+The policy selection sets differ for other Pods and external IPs; this example does not show equivalence or a specification violation. [Definitions and historical runner](exp-009/README.md).
+
 ## How to read the tables
 
-Counts are matching probes / total probes for the original run, compared with the experiment's stated expectations; they are NOT implementation conformance percentages. For cases with undefined behavior the summary tool counts ANY as matching and the observed results are separately described below. The same 988 CNI-specific probe conditions were recorded four times (3,952 observations); the later 2,964 outcomes matched the first observations. Runs used existing clusters, not rebuilt clusters; later runs followed a Docker restart and CNI execution changed from parallel to sequential.
+**The tables below are expectation-match counts, not observed pass counts or conformance scores.** Each numerator counts probes whose recorded result matches an experiment-defined expected result (which may be either pass or deny); the denominator counts probes. An `ANY` expectation is counted as a match regardless of observed outcome. For example, ingress C08 is 9/9 for flannel even though the separately tested out-of-range ports pass there. These counts summarize only the original run and must be read alongside the definitions and observations. For cases with undefined behavior the summary tool counts ANY as matching and the observed results are separately described below. The same 988 CNI-specific probe conditions were recorded four times (3,952 observations); the later 2,964 outcomes matched the first observations. Runs used existing clusters, not rebuilt clusters; later runs followed a Docker restart and CNI execution changed from parallel to sequential.
 
 Ingress probes: sources a, b and c to Pod IP ports 80/81 and Service IP port 80 (9). Egress probes: clients a and b to Pod ports 80/81, Service by IP and DNS, and an external destination (10). Protocol probes: ordinary Pod a and same-node hostNetwork Pod h with TCP, UDP, SCTP and ICMP (8). For exact selectors, endpoints and policies consult the experiment source; case names alone are not sufficient to reproduce. DNS and Service behaviors depend on the environment. Timeouts are classified as blocked observations, not proof of the underlying packet handling.
 
